@@ -3,6 +3,7 @@ const DB_TYPES = require('./constants').DB_TYPES;
 
 /*
  * Set DB_TYPE to a database of your choice:
+ * - CASSANDRA: Apache Cassandra
  * - MONGO: MongoDB
  * - POSTGRES: Postgresql
  * - NONE: There is no DB connection
