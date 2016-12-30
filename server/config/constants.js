@@ -2,6 +2,7 @@
 function defaultExport() {}
 
 defaultExport.DB_TYPES = {
+  CASSANDRA: 'CASSANDRA',
   MONGO: 'MONGO',
   POSTGRES: 'POSTGRES',
   NONE: 'NONE'
