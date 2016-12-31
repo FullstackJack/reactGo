@@ -1,11 +1,3 @@
-/**
- * Schema Definitions
- *
- */
- // id: String,
- // text: String,
- // count: { type: Number, min: 0 },
- // date: { type: Date, default: Date.now }
 module.exports = {
   fields: {
     id: {
