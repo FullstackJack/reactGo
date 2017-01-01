@@ -1,17 +1,26 @@
 import _ from 'lodash';
+import Promise from 'bluebird';
 import cassandra from 'express-cassandra';
 
 /**
  * List
  */
 export function all(req, res) {
-  cassandra.instance.Topics.find({}, (err, topics) => {
+  cassandra.instance.Topics.find({}, { raw: true }, (err, topics) => {
     if (err) {
-      console.log('Error in first query');
-      return res.status(500).send('Something went wrong getting the data');
+      return res.status(500).send('Something went wrong getting the data.');
     }
-
-    return res.json(topics.toJSON());
+    // Map the counter to the topic.
+    Promise.map(topics, topic => {
+      return cassandra.instance.TopicsCount.findOneAsync({ id: topic.id }, { raw: true }).then((counter) => {
+        return { ...topic, count: parseInt(counter.count, 10) };
+      });
+    }).then(data => {
+      return res.json(data);
+    }).catch(err => {
+      console.log(err);
+      return res.status(500).send('Something went wrong getting the data.');
+    });
   });
 }
 
@@ -19,14 +28,22 @@ export function all(req, res) {
  * Add a Topic
  */
 export function add(req, res) {
-  const topic = new cassandra.instance.Topic(req.body);
+  const topic = new cassandra.instance.Topics(req.body);
   topic.save(err => {
     if (err) {
       console.log(err);
       return res.status(400).send(err);
     }
-
-    return res.status(200).send('OK');
+    const query = { id: req.params.id };
+    const count = cassandra.datatypes.Long.fromInt(1);
+    const data = { count };
+    cassandra.instance.TopicsCount.update(query, data, err => {
+      if (err) {
+        console.log(err);
+        return res.status(400).send(err);
+      }
+      return res.status(200).send('OK');
+    });
   });
 }
 
@@ -36,29 +53,17 @@ export function add(req, res) {
 export function update(req, res) {
   const query = { id: req.params.id };
   const isIncrement = req.body.isIncrement;
-  const isFull = req.body.isFull;
-  const omitKeys = ['id', '_id', '_v', 'isIncrement', 'isFull'];
-  const data = _.omit(req.body, omitKeys);
+  // const isFull = req.body.isFull;
+  // const omitKeys = ['id', '_id', '_v', 'isIncrement', 'isFull'];
+  // const data = _.omit(req.body, omitKeys);
+  const count = isIncrement ? cassandra.datatypes.Long.fromInt(1) : cassandra.datatypes.Long.fromInt(-1);
 
-  if (isFull) {
-    Topic.findOneAndUpdate(query, data, (err) => {
-      if (err) {
-        console.log('Error on save!');
-        return res.status(500).send('We failed to save for some reason');
-      }
-
-      return res.status(200).send('Updated successfully');
-    });
-  } else {
-    Topic.findOneAndUpdate(query, { $inc: { count: isIncrement ? 1 : -1 } }, (err) => {
-      if (err) {
-        console.log('Error on save!');
-        return res.status(500).send('We failed to save for some reason');
-      }
-
-      return res.status(200).send('Updated successfully');
-    });
-  }
+  cassandra.instance.TopicsCount.update(query, { count }, err => {
+    if (err) {
+      return res.status(500).send('We failed to save for some reason.');
+    }
+    return res.status(200).send('Updated successfully!');
+  });
 }
 
 /**
@@ -66,13 +71,21 @@ export function update(req, res) {
  */
 export function remove(req, res) {
   const query = { id: req.params.id };
-  Topic.findOneAndRemove(query, (err) => {
+  // Delete topic
+  cassandra.instance.Topics.delete(query, err => {
     if (err) {
-      console.log('Error on delete');
+      console.log('Error on delete', err);
       return res.status(500).send('We failed to delete for some reason');
     }
 
-    return res.status(200).send('Removed Successfully');
+    // Delete topic count
+    cassandra.instance.TopicsCount.delete(query, err => {
+      if (err) {
+        console.log('Error on delete', err);
+        return res.status(500).send('We failed to delete for some reason');
+      }
+      return res.status(200).send('Removed Successfully!');
+    });
   });
 }
 

@@ -1,5 +1,5 @@
 import passport from 'passport';
-import User from '../models/user';
+import cassandra from 'express-cassandra';
 
 /**
  * POST /login
@@ -36,20 +36,20 @@ export function logout(req, res) {
  * Create a new local account
  */
 export function signUp(req, res, next) {
-  const user = new User({
+  const user = new cassandra.instance.Users({
     email: req.body.email,
     password: req.body.password
   });
 
-  User.findOne({ email: req.body.email }, (findErr, existingUser) => {
+  cassandra.instance.Users.find({ email: req.body.email }, (findErr, existingUser) => {
     if (existingUser) {
       return res.status(409).json({ message: 'Account with this email address already exists!' });
     }
 
-    return user.save((saveErr) => {
-      if (saveErr) return next(saveErr);
-      return req.logIn(user, (loginErr) => {
-        if (loginErr) return res.status(401).json({ message: loginErr });
+    return user.save(saveErr => {
+      if (saveErr) { return next(saveErr); }
+      return req.logIn(user, loginErr => {
+        if (loginErr) { return res.status(401).json({ message: loginErr }); }
         return res.status(200).json({
           message: 'You have been successfully logged in.'
         });
