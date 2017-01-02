@@ -1,5 +1,6 @@
 import passport from 'passport';
 import cassandra from 'express-cassandra';
+import users from './../models/UsersModel';
 
 /**
  * POST /login
@@ -13,7 +14,7 @@ export function login(req, res, next) {
     }
     // Passport exposes a login() function on req (also aliased as
     // logIn()) that can be used to establish a login session
-    return req.logIn(user, (loginErr) => {
+    return req.login(user, (loginErr) => {
       if (loginErr) return res.status(401).json({ message: loginErr });
       return res.status(200).json({
         message: 'You have been successfully logged in.'
@@ -36,19 +37,20 @@ export function logout(req, res) {
  * Create a new local account
  */
 export function signUp(req, res, next) {
-  const user = new cassandra.instance.Users({
-    email: req.body.email,
-    password: req.body.password
-  });
-
-  cassandra.instance.Users.find({ email: req.body.email }, (findErr, existingUser) => {
+  cassandra.instance.Users.findOneAsync({ email: req.body.email }).then(existingUser => {
     if (existingUser) {
       return res.status(409).json({ message: 'Account with this email address already exists!' });
     }
 
+    const hashedPass = users.encryptPassword(req.body.password);
+    const user = new cassandra.instance.Users({
+      email: req.body.email,
+      password: hashedPass,
+    });
+
     return user.save(saveErr => {
       if (saveErr) { return next(saveErr); }
-      return req.logIn(user, loginErr => {
+      return req.login(user, { session: false }, loginErr => {
         if (loginErr) { return res.status(401).json({ message: loginErr }); }
         return res.status(200).json({
           message: 'You have been successfully logged in.'

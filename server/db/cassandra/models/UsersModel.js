@@ -1,3 +1,20 @@
+const bcrypt = require('bcrypt-nodejs');
+
+function comparePassword(candidatePassword, password, cb) {
+  bcrypt.compare(candidatePassword, password, (err, isMatch) => {
+    if (err) return cb(err);
+    return cb(null, isMatch);
+  });
+}
+
+function encryptPassword(password) {
+  const salt = bcrypt.genSaltSync(5);
+  if (!salt) {
+    throw new Error('SaltError');
+  }
+  return bcrypt.hashSync(password, salt, null);
+}
+
 module.exports = {
   fields: {
     id: {
@@ -14,5 +31,7 @@ module.exports = {
       default: { '$db_function': 'toTimestamp(now())' }
     },
   },
-  key: [['id']],
+  key: [['email']],
+  encryptPassword,
+  comparePassword,
 };

@@ -1,6 +1,5 @@
 import cassandra from 'express-cassandra';
 import config from './constants';
-// import loadModels from './models';
 
 export default () => {
   cassandra.setDirectory(`${process.cwd()}/server/db/cassandra/models`).bind(config, err => {
