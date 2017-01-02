@@ -50,7 +50,7 @@ export function signUp(req, res, next) {
 
     return user.save(saveErr => {
       if (saveErr) { return next(saveErr); }
-      return req.login(user, { session: false }, loginErr => {
+      return req.login(user, loginErr => {
         if (loginErr) { return res.status(401).json({ message: loginErr }); }
         return res.status(200).json({
           message: 'You have been successfully logged in.'
