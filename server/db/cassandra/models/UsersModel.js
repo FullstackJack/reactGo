@@ -23,7 +23,7 @@ module.exports = {
     },
     email: { type: 'text' },
     password: { type: 'text' },
-    tokens: { type: 'set', typeDef: '<text>' },
+    tokens: { type: 'set', typeDef: '<frozen <user_token>>' },
     profile: { type: 'frozen', typeDef: '<profile>' },
     passwordResetToken: { type: 'text' },
     created: {
