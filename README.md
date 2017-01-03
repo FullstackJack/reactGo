@@ -95,7 +95,7 @@ You will have to install redux devtools extension from [here](https://github.com
 
 #### Database
 
-We currently support MongoDB and Postgres, as well as the ability to not use any database. [Learn](docs/databases.md) about how to configure your app.
+We currently support Cassandra, MongoDB and Postgres, as well as the ability to not use any database. [Learn](docs/databases.md) about how to configure your app.
 
 #### Development
 
