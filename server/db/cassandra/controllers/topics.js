@@ -1,7 +1,8 @@
-import _ from 'lodash';
 import Promise from 'bluebird';
-import cassandra from 'express-cassandra';
+// import cassandra from 'express-cassandra';
+import { getClient } from './../connect';
 
+const cassandra = getClient();
 /**
  * List
  */
@@ -28,6 +29,7 @@ export function all(req, res) {
  * Add a Topic
  */
 export function add(req, res) {
+  console.log('getClient()', cassandra);
   const topic = new cassandra.instance.Topics(req.body);
   topic.save(err => {
     if (err) {
@@ -53,9 +55,6 @@ export function add(req, res) {
 export function update(req, res) {
   const query = { id: req.params.id };
   const isIncrement = req.body.isIncrement;
-  // const isFull = req.body.isFull;
-  // const omitKeys = ['id', '_id', '_v', 'isIncrement', 'isFull'];
-  // const data = _.omit(req.body, omitKeys);
   const count = isIncrement ? cassandra.datatypes.Long.fromInt(1) : cassandra.datatypes.Long.fromInt(-1);
 
   cassandra.instance.TopicsCount.update(query, { count }, err => {

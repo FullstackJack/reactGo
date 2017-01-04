@@ -4,5 +4,5 @@ module.exports = {
     count: 'counter',
   },
   key: [['id']],
-  table_name: 'topics_count',
+  // table_name: 'topics_count',
 };

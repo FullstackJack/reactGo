@@ -1,6 +1,6 @@
 import passport from 'passport';
 import cassandra from 'express-cassandra';
-import users from './../models/UsersModel';
+import users from './../models/users';
 
 /**
  * POST /login

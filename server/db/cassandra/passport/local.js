@@ -1,5 +1,5 @@
 import cassandra from 'express-cassandra';
-import users from './../models/UsersModel';
+import users from './../models/users';
 
 export default (email, password, done) => {
   cassandra.instance.Users.findOne({ email }, (findErr, user) => {
